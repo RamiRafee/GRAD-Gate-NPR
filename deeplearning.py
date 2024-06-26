@@ -109,7 +109,7 @@ def drawings(image,boxes_np,confidences_np,index,filename):
 
 #         cv2.putText(image,conf_text,(x,y-10),cv2.FONT_HERSHEY_SIMPLEX,0.7,(255,255,255),1)
 #         cv2.putText(image,license_text,(x,y+h+27),cv2.FONT_HERSHEY_SIMPLEX,0.7,(255,255,255),1)
-    cv2.imwrite('./static/predict/{}'.format(filename),image)
+    cv2.imwrite('./static/predict/NPR/{}'.format(filename),image)
     return image
 def yolo_predictions(img,net,filename):
     ## step-1: detections
@@ -129,7 +129,7 @@ def OCR(path,filename):
     # plt.imshow(cv2.cvtColor(roi, cv2.COLOR_BGR2RGB))
     # plt.axis('off')  # Turn off axis numbers and ticks
     # plt.show()
-    cv2.imwrite('./static/roi/{}'.format(filename),roi)
+    cv2.imwrite('./static/roi/NPR/{}'.format(filename),roi)
     #roi_bgr = cv2.cvtColor(roi,cv2.COLOR_RGB2BGR)
     #cv2.imwrite('./static/roi/{}'.format(filename),roi_bgr)
 
