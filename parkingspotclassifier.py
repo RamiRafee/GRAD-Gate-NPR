@@ -183,53 +183,77 @@ def resize_image(input_image_path, output_image_path, new_width, new_height):
     resized_image = original_image.resize((new_width, new_height), Image.Resampling.LANCZOS)
     resized_image.save(output_image_path)
 
+# def car_color(car_path):
+    # car_image = img.imread(car_path)
+
+    # r, g, b = [], [], []
+
+    # for row in car_image:
+    #     for temp_r, temp_g, temp_b in row:
+    #         r.append(temp_r)
+    #         g.append(temp_g)
+    #         b.append(temp_b)
+
+    # colors_df = pd.DataFrame({'red': r, 'blue': b, 'green': g,
+    #                           'scaled_red': whiten(r), 'scaled_blue': whiten(b), 'scaled_green': whiten(g)})
+
+    # r_std, g_std, b_std = colors_df[['red', 'green', 'blue']].std()
+
+    # colors = []
+
+    # n_cluster = 2
+    # cluster_centers, _ = kmeans(colors_df[['scaled_red', 'scaled_blue', 'scaled_green']], n_cluster)
+
+    # for cluster_center in cluster_centers:
+    #     scaled_r, scaled_g, scaled_b = cluster_center
+    #     colors.append((scaled_r * r_std / 255, scaled_g * g_std / 255, scaled_b * b_std / 255))
+
+    # colors2 = np.array(colors)
+
+    # has_one = np.any(colors2 > 1, axis=1)
+
+    # for i, row_has_one in enumerate(has_one):
+    #     if row_has_one:
+    #         maxi = np.max(colors2, axis = 1).reshape(-1, 1)
+    #         colors2[i] = colors2[i] * (255 / maxi[i])
+    #     else:
+    #         colors2[i] = colors2[i] * 255
+
+    # for i in range(0, n_cluster):
+    #     colors[i] = colors2[i].astype('int').tolist()
+
+    # return list(colors)
+
+    # # plt.imshow(car_image)
+    # # plt.show()
+
+    # # plt.imshow([colors])
+    # # plt.show()
 def car_color(car_path):
     car_image = img.imread(car_path)
 
-    r, g, b = [], [], []
+    # Flatten the image array and separate the color channels
+    pixels = car_image.reshape(-1, 3)
+    r, g, b = pixels[:, 0], pixels[:, 1], pixels[:, 2]
 
-    for row in car_image:
-        for temp_r, temp_g, temp_b in row:
-            r.append(temp_r)
-            g.append(temp_g)
-            b.append(temp_b)
-
-    colors_df = pd.DataFrame({'red': r, 'blue': b, 'green': g,
-                              'scaled_red': whiten(r), 'scaled_blue': whiten(b), 'scaled_green': whiten(g)})
+    # Create a DataFrame and whiten the color values
+    colors_df = pd.DataFrame({'red': r, 'blue': b, 'green': g})
+    colors_df['scaled_red'] = whiten(r)
+    colors_df['scaled_blue'] = whiten(b)
+    colors_df['scaled_green'] = whiten(g)
 
     r_std, g_std, b_std = colors_df[['red', 'green', 'blue']].std()
 
-    colors = []
-
+    # Perform k-means clustering
     n_cluster = 2
     cluster_centers, _ = kmeans(colors_df[['scaled_red', 'scaled_blue', 'scaled_green']], n_cluster)
 
-    for cluster_center in cluster_centers:
-        scaled_r, scaled_g, scaled_b = cluster_center
-        colors.append((scaled_r * r_std / 255, scaled_g * g_std / 255, scaled_b * b_std / 255))
+    # Convert scaled cluster centers back to original color values
+    colors = (cluster_centers * [r_std, g_std, b_std] / 255).tolist()
+    colors = np.clip(colors, 0, 1) * 255
+    colors = np.array(colors).astype(int).tolist()
 
-    colors2 = np.array(colors)
-
-    has_one = np.any(colors2 > 1, axis=1)
-
-    for i, row_has_one in enumerate(has_one):
-        if row_has_one:
-            maxi = np.max(colors2, axis = 1).reshape(-1, 1)
-            colors2[i] = colors2[i] * (255 / maxi[i])
-        else:
-            colors2[i] = colors2[i] * 255
-
-    for i in range(0, n_cluster):
-        colors[i] = colors2[i].astype('int').tolist()
-
-    return list(colors)
-
-    # plt.imshow(car_image)
-    # plt.show()
-
-    # plt.imshow([colors])
-    # plt.show()
-
+    return colors
 
 
 if __name__ == '__main__':
