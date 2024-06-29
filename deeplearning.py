@@ -7,6 +7,39 @@ import matplotlib.pyplot as plt
 # from bidi.algorithm import get_display
 import easyocr
 
+BASE_PATH = os.getcwd()
+UPLOAD_PATH_NPR = os.path.join(BASE_PATH, 'static', 'upload', 'NPR')
+UPLOAD_PATH_SPOTS = os.path.join(BASE_PATH, 'static', 'upload', 'SPOTS')
+ROI_PATH_NPR = os.path.join(BASE_PATH, 'static', 'roi', 'NPR')
+ROI_PATH_SPOTS = os.path.join(BASE_PATH, 'static', 'roi', 'SPOTS')
+PREDICT_PATH_NPR = os.path.join(BASE_PATH, 'static', 'predict', 'NPR')
+PREDICT_PATH_SPOTS = os.path.join(BASE_PATH, 'static', 'predict', 'SPOTS')
+
+# Define the XAMPP htdocs directory paths
+# Adjust the path based on your XAMPP installation directory
+if os.name == 'nt':  # Windows
+    XAMPP_HTDOCS_PATH = 'C:/xampp/htdocs'
+else:  # Unix-based (Linux/MacOS)
+    XAMPP_HTDOCS_PATH = '/opt/lampp/htdocs'
+
+XAMPP_UPLOAD_PATH_NPR = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'upload', 'NPR')
+XAMPP_UPLOAD_PATH_SPOTS = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'upload', 'SPOTS')
+XAMPP_ROI_PATH_NPR = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'roi', 'NPR')
+XAMPP_ROI_PATH_SPOTS = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'roi', 'SPOTS')
+XAMPP_PREDICT_PATH_NPR = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'predict', 'NPR')
+XAMPP_PREDICT_PATH_SPOTS = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'predict', 'SPOTS')
+
+# Ensure all directories exist
+directories = [
+    UPLOAD_PATH_NPR, UPLOAD_PATH_SPOTS, ROI_PATH_NPR, ROI_PATH_SPOTS,
+    PREDICT_PATH_NPR, PREDICT_PATH_SPOTS, XAMPP_UPLOAD_PATH_NPR,
+    XAMPP_UPLOAD_PATH_SPOTS, XAMPP_ROI_PATH_NPR, XAMPP_ROI_PATH_SPOTS,
+    XAMPP_PREDICT_PATH_NPR, XAMPP_PREDICT_PATH_SPOTS
+]
+
+for directory in directories:
+    os.makedirs(directory, exist_ok=True)
+
 # model = tf.keras.models.load_model('./static/models/object_detection.h5')
 
 """ 
@@ -111,7 +144,8 @@ def drawings(image,boxes_np,confidences_np,index,filename):
 
 #         cv2.putText(image,conf_text,(x,y-10),cv2.FONT_HERSHEY_SIMPLEX,0.7,(255,255,255),1)
 #         cv2.putText(image,license_text,(x,y+h+27),cv2.FONT_HERSHEY_SIMPLEX,0.7,(255,255,255),1)
-    cv2.imwrite('./static/predict/NPR/{}'.format(filename),image)
+    cv2.imwrite(PREDICT_PATH_NPR+"/"+filename,image)
+    cv2.imwrite(XAMPP_PREDICT_PATH_NPR+"/"+filename,image)
     return image
 def yolo_predictions(img,net,filename):
     ## step-1: detections
@@ -136,7 +170,10 @@ def OCR(path,filename):
     # plt.imshow(cv2.cvtColor(roi, cv2.COLOR_BGR2RGB))
     # plt.axis('off')  # Turn off axis numbers and ticks
     # plt.show()
-    cv2.imwrite('./static/roi/NPR/{}'.format(filename),roi)
+
+    cv2.imwrite(ROI_PATH_NPR+"/"+filename,roi)
+    cv2.imwrite(XAMPP_ROI_PATH_NPR+"/"+filename,roi)
+
     #roi_bgr = cv2.cvtColor(roi,cv2.COLOR_RGB2BGR)
     #cv2.imwrite('./static/roi/{}'.format(filename),roi_bgr)
 

@@ -18,6 +18,40 @@ import matplotlib.pyplot as plt
 import matplotlib.image as img
 from scipy.cluster.vq import whiten, kmeans
 model_weights_path = './static/models/spots/best.onnx'
+
+BASE_PATH = os.getcwd()
+UPLOAD_PATH_NPR = os.path.join(BASE_PATH, 'static', 'upload', 'NPR')
+UPLOAD_PATH_SPOTS = os.path.join(BASE_PATH, 'static', 'upload', 'SPOTS')
+ROI_PATH_NPR = os.path.join(BASE_PATH, 'static', 'roi', 'NPR')
+ROI_PATH_SPOTS = os.path.join(BASE_PATH, 'static', 'roi', 'SPOTS')
+PREDICT_PATH_NPR = os.path.join(BASE_PATH, 'static', 'predict', 'NPR')
+PREDICT_PATH_SPOTS = os.path.join(BASE_PATH, 'static', 'predict', 'SPOTS')
+
+# Define the XAMPP htdocs directory paths
+# Adjust the path based on your XAMPP installation directory
+if os.name == 'nt':  # Windows
+    XAMPP_HTDOCS_PATH = 'C:/xampp/htdocs'
+else:  # Unix-based (Linux/MacOS)
+    XAMPP_HTDOCS_PATH = '/opt/lampp/htdocs'
+
+XAMPP_UPLOAD_PATH_NPR = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'upload', 'NPR')
+XAMPP_UPLOAD_PATH_SPOTS = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'upload', 'SPOTS')
+XAMPP_ROI_PATH_NPR = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'roi', 'NPR')
+XAMPP_ROI_PATH_SPOTS = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'roi', 'SPOTS')
+XAMPP_PREDICT_PATH_NPR = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'predict', 'NPR')
+XAMPP_PREDICT_PATH_SPOTS = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'predict', 'SPOTS')
+
+# Ensure all directories exist
+directories = [
+    UPLOAD_PATH_NPR, UPLOAD_PATH_SPOTS, ROI_PATH_NPR, ROI_PATH_SPOTS,
+    PREDICT_PATH_NPR, PREDICT_PATH_SPOTS, XAMPP_UPLOAD_PATH_NPR,
+    XAMPP_UPLOAD_PATH_SPOTS, XAMPP_ROI_PATH_NPR, XAMPP_ROI_PATH_SPOTS,
+    XAMPP_PREDICT_PATH_NPR, XAMPP_PREDICT_PATH_SPOTS
+]
+
+for directory in directories:
+    os.makedirs(directory, exist_ok=True)
+
 def parking(image_path,current_date, input_width, input_height, offset, confidence, class_score):
     img = cv2.imread(image_path)
     net = cv2.dnn.readNetFromONNX(model_weights_path)
@@ -44,12 +78,14 @@ def parking(image_path,current_date, input_width, input_height, offset, confiden
     empty, empty_boxes = bounding_box(input_image, detections, 5, confidence, input_width, input_height, class_score)
     occupied, occupied_boxes = bounding_box(input_image, detections, 6, confidence, input_width, input_height, class_score)
     output_full_image_path = f'./static/predict/SPOTS/{current_date}/output.jpg'
+    output_full_image_path =os.path.join(PREDICT_PATH_SPOTS, current_date, 'output.jpg')
+    output_full_image_path_xampp =os.path.join(XAMPP_PREDICT_PATH_SPOTS, current_date, 'output.jpg')
     # Create the "currentdate" folder if it doesn't exist
     folder_path = os.path.dirname(output_full_image_path)
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
-    x_empty, y_empty, w_empty, h_empty = draw_bounding_boxes(image, output_full_image_path, empty, empty_boxes, centering_gap, (255, 0, 0))
-    x_occupied, y_occupied, w_occupied, h_occupied = draw_bounding_boxes(image, output_full_image_path, occupied, occupied_boxes, centering_gap, (0, 255, 0))
+    x_empty, y_empty, w_empty, h_empty = draw_bounding_boxes(image, output_full_image_path,output_full_image_path_xampp, empty, empty_boxes, centering_gap, (255, 0, 0))
+    x_occupied, y_occupied, w_occupied, h_occupied = draw_bounding_boxes(image, output_full_image_path,output_full_image_path_xampp, occupied, occupied_boxes, centering_gap, (0, 255, 0))
 
     df_empty = pd.DataFrame(columns = ['index', 'X', 'Y', 'W', 'H', 'Status', 'Color'])
     df_occupied = pd.DataFrame(columns = ['index', 'X', 'Y', 'W', 'H', 'Status', 'Color'])
@@ -71,20 +107,29 @@ def parking(image_path,current_date, input_width, input_height, offset, confiden
     # current_date = datetime.datetime.now().strftime('%Y-%m-%d-%S')
     for i in range(len(x_occupied)):
         string = f"./static/roi/SPOTS/{current_date}/test/{i}.jpg"
+        string = os.path.join(ROI_PATH_SPOTS, current_date, 'output',f"{i}.jpg")
+        string_Xampp = os.path.join(XAMPP_ROI_PATH_SPOTS, current_date, 'output',f"{i}.jpg")
+
         # Create the "currentdate" folder if it doesn't exist
         folder_path = os.path.dirname(string)
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
+        # Create the "currentdate" folder if it doesn't exist
+        folder_path = os.path.dirname(string_Xampp)
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
         cv2.imwrite(string, img[y_occupied[i] - centering_gap: y_occupied[i] + h_occupied[i] - centering_gap, x_occupied[i] : x_occupied[i] + w_occupied[i]])
+        cv2.imwrite(string_Xampp, img[y_occupied[i] - centering_gap: y_occupied[i] + h_occupied[i] - centering_gap, x_occupied[i] : x_occupied[i] + w_occupied[i]])
     
     for i in range(len(x_occupied)):
-        input_image_path = f"./static/roi/SPOTS/{current_date}/test/{i}.jpg"
+        input_image_path = os.path.join(ROI_PATH_SPOTS, current_date, 'output',f"{i}.jpg")
 
-        output_image_path = f"./static/roi/SPOTS/{current_date}/_({i}).jpg"
+        output_image_path = os.path.join(ROI_PATH_SPOTS, current_date, 'output',f"_({i}).jpg")
+        output_image_path_xampp = os.path.join(XAMPP_ROI_PATH_SPOTS, current_date, 'output',f"_({i}).jpg")
         new_width = w_occupied[i] * 10
         new_height = h_occupied[i] * 10
 
-        resize_image(input_image_path, output_image_path, new_width, new_height)
+        resize_image(input_image_path, output_image_path,output_image_path_xampp, new_width, new_height)
 
         color = car_color(output_image_path)
         lst.append(color)
@@ -93,11 +138,19 @@ def parking(image_path,current_date, input_width, input_height, offset, confiden
     df_full.loc[df_full['Status'] == 'F', 'Color'] = lst
     # current_date = datetime.datetime.now().strftime('%Y-%m-%d-%S')
     csv_output_path = f'./static/predict/SPOTS/{current_date}/Parking Spots Details.csv'
+    csv_output_path = os.path.join(PREDICT_PATH_SPOTS, current_date, 'Parking Spots Details.csv')
+    csv_output_path_xampp = os.path.join(XAMPP_PREDICT_PATH_SPOTS, current_date, 'Parking Spots Details.csv')
+
     # Create the "currentdate" folder if it doesn't exist
     folder_path = os.path.dirname(csv_output_path)
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
+    # Create the "currentdate" folder if it doesn't exist
+    folder_path = os.path.dirname(csv_output_path_xampp)
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
     df_full.to_csv(csv_output_path, index=False)
+    df_full.to_csv(csv_output_path_xampp, index=False)
     spot_status = {}
 
     for i, row in df_full.iterrows():
@@ -141,7 +194,7 @@ def bounding_box(input_image, detections, spot_class, confidence_thresh, input_w
 
     return index, boxes_np
 
-def draw_bounding_boxes(image, out_img_path, class_spot, boxes_np, centering_gap, rgb):
+def draw_bounding_boxes(image, out_img_path,xampp_out_img_path, class_spot, boxes_np, centering_gap, rgb):
     x_list = []
     y_list = []
     w_list = []
@@ -157,6 +210,8 @@ def draw_bounding_boxes(image, out_img_path, class_spot, boxes_np, centering_gap
         cv2.rectangle(image, (x, y - centering_gap), (x + w, y + h - centering_gap), rgb, 1)
 
     cv2.imwrite(out_img_path, image)
+    cv2.imwrite(xampp_out_img_path, image)
+
 
     return x_list, y_list, w_list, h_list
 
@@ -178,10 +233,11 @@ def rank_numbers(unsorted_numbers):
 
     return ranked_list
 
-def resize_image(input_image_path, output_image_path, new_width, new_height):
+def resize_image(input_image_path, output_image_path,output_image_path_xampp, new_width, new_height):
     original_image = Image.open(input_image_path)
     resized_image = original_image.resize((new_width, new_height), Image.Resampling.LANCZOS)
     resized_image.save(output_image_path)
+    resized_image.save(output_image_path_xampp)
 
 # def car_color(car_path):
     # car_image = img.imread(car_path)

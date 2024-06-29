@@ -97,9 +97,14 @@ def append_to_file(file_name, CarNum):
         file.write(f"{CarNum}\n")    
 def update_SPOTS(table, slots, file_name):
     # Read the car number from the file
-    with open(file_name, 'r') as file:
-        carNum = file.readline().strip()
-
+    # with open(file_name, 'r') as file:
+    #     carNum = file.readline().strip()
+    try:
+        with open(file_name, 'r', encoding='utf-8') as file:
+            carNum = file.readline().strip()
+    except UnicodeDecodeError:
+        with open(file_name, 'r', encoding='ISO-8859-1') as file:
+            carNum = file.readline().strip()
     # Fetch current states from the database and find the spot that changed from "E" to "F"
     current_states = {}
     spot_to_update = None
@@ -152,8 +157,8 @@ def update_SPOTS(table, slots, file_name):
             lines = file.readlines()
         with open(file_name, 'w') as file:
             file.writelines("")  # Skip the first line
-        return spot_updated
-    return spot_updated
+        return "True"
+    return "False"
    
 if __name__ =="__main__":
     #plat_num = input("Enter the car number: ")  # Assuming user input for car number

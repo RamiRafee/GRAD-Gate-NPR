@@ -10,8 +10,37 @@ from datetime import datetime, timedelta
 app = Flask(__name__)
 
 BASE_PATH = os.getcwd()
-UPLOAD_PATH_NPR = os.path.join(BASE_PATH,'static/upload/NPR/')
-UPLOAD_PATH_SPOTS = os.path.join(BASE_PATH,'static/upload/SPOTS/')
+UPLOAD_PATH_NPR = os.path.join(BASE_PATH, 'static', 'upload', 'NPR')
+UPLOAD_PATH_SPOTS = os.path.join(BASE_PATH, 'static', 'upload', 'SPOTS')
+ROI_PATH_NPR = os.path.join(BASE_PATH, 'static', 'roi', 'NPR')
+ROI_PATH_SPOTS = os.path.join(BASE_PATH, 'static', 'roi', 'SPOTS')
+PREDICT_PATH_NPR = os.path.join(BASE_PATH, 'static', 'predict', 'NPR')
+PREDICT_PATH_SPOTS = os.path.join(BASE_PATH, 'static', 'predict', 'SPOTS')
+
+# Define the XAMPP htdocs directory paths
+# Adjust the path based on your XAMPP installation directory
+if os.name == 'nt':  # Windows
+    XAMPP_HTDOCS_PATH = 'C:/xampp/htdocs'
+else:  # Unix-based (Linux/MacOS)
+    XAMPP_HTDOCS_PATH = '/opt/lampp/htdocs'
+
+XAMPP_UPLOAD_PATH_NPR = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'upload', 'NPR')
+XAMPP_UPLOAD_PATH_SPOTS = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'upload', 'SPOTS')
+XAMPP_ROI_PATH_NPR = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'roi', 'NPR')
+XAMPP_ROI_PATH_SPOTS = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'roi', 'SPOTS')
+XAMPP_PREDICT_PATH_NPR = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'predict', 'NPR')
+XAMPP_PREDICT_PATH_SPOTS = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'predict', 'SPOTS')
+
+# Ensure all directories exist
+directories = [
+    UPLOAD_PATH_NPR, UPLOAD_PATH_SPOTS, ROI_PATH_NPR, ROI_PATH_SPOTS,
+    PREDICT_PATH_NPR, PREDICT_PATH_SPOTS, XAMPP_UPLOAD_PATH_NPR,
+    XAMPP_UPLOAD_PATH_SPOTS, XAMPP_ROI_PATH_NPR, XAMPP_ROI_PATH_SPOTS,
+    XAMPP_PREDICT_PATH_NPR, XAMPP_PREDICT_PATH_SPOTS
+]
+
+for directory in directories:
+    os.makedirs(directory, exist_ok=True)
 
 def separate_letters(input_string):
     result = ''
@@ -24,26 +53,53 @@ def separate_letters(input_string):
 def index():
     if request.method == 'POST':
         if 'image_name_NPR' in request.files:
+            current_date = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
             upload_file = request.files['image_name_NPR']
-            filename = upload_file.filename
-            path_save = os.path.join(UPLOAD_PATH_NPR, filename)
-            upload_file.save(path_save)
-            easyOCRtext = OCR(path_save, filename)
+            filename = current_date+".jpg"
+
+
+            # Read the file content
+            file_content = upload_file.read()
+
+            # Save the file in the Flask app directory
+            flask_path = os.path.join(UPLOAD_PATH_NPR, filename)
+            with open(flask_path, 'wb') as f:
+                f.write(file_content)
+
+            # Save the file in the XAMPP htdocs directory
+            xampp_path = os.path.join(XAMPP_UPLOAD_PATH_NPR, filename)
+            with open(xampp_path, 'wb') as f:
+                f.write(file_content)
+
+
+            easyOCRtext = OCR(flask_path, filename)
             if easyOCRtext == None:
                 return render_template('index.html', NPR=True, upload_image=filename, easyOCRtext="NO ROI FOUND!",customOCRtext="NO ROI FOUND!")
-            roiPath = './static/roi/NPR/{}'.format(filename)
+            roiPath = ROI_PATH_NPR+"/"+current_date+".jpg"
             CustomOCRtext = customocr(roiPath)
             CustomOCRtext = separate_letters(CustomOCRtext)
             return render_template('index.html', NPR=True, upload_image=filename, easyOCRtext=easyOCRtext, customOCRtext=CustomOCRtext)
         elif 'image_name_SPOTS' in request.files:
             upload_file = request.files['image_name_SPOTS']
-            filename = upload_file.filename
-            path_save = os.path.join(UPLOAD_PATH_SPOTS, filename)
-            upload_file.save(path_save)
+
             current_date = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-            
+            filename = current_date+".jpg"
+
+
+            # Read the file content
+            file_content = upload_file.read()
+
+            # Save the file in the Flask app directory
+            flask_path = os.path.join(UPLOAD_PATH_SPOTS, filename)
+            with open(flask_path, 'wb') as f:
+                f.write(file_content)
+
+            # Save the file in the XAMPP htdocs directory
+            xampp_path = os.path.join(XAMPP_UPLOAD_PATH_SPOTS, filename)
+            with open(xampp_path, 'wb') as f:
+                f.write(file_content)
             spots = parking(
-                path_save,
+                flask_path,
                 current_date,
                 640,
                 640,
@@ -61,16 +117,31 @@ def index():
 @app.route('/upload_image_NPR', methods=['POST'])
 def upload_image_NPR():
     if request.method == 'POST':
+        current_date = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         if 'image' not in request.files:
             return 'No file part'
         upload_file = request.files['image']
         if upload_file.filename == '':
             return 'No selected file'
-        filename = upload_file.filename
-        path_save = os.path.join(UPLOAD_PATH_NPR, filename)
-        upload_file.save(path_save)
-        #number_plate = OCR(path_save, filename)
-        roiPath = './static/roi/NPR/{}'.format(filename)
+        filename = current_date+".jpg"
+
+
+        # Read the file content
+        file_content = upload_file.read()
+
+        # Save the file in the Flask app directory
+        flask_path = os.path.join(UPLOAD_PATH_NPR, filename)
+        with open(flask_path, 'wb') as f:
+            f.write(file_content)
+
+        # Save the file in the XAMPP htdocs directory
+        xampp_path = os.path.join(XAMPP_UPLOAD_PATH_NPR, filename)
+        with open(xampp_path, 'wb') as f:
+            f.write(file_content)
+        
+        
+        number_plate = OCR(flask_path, filename)
+        roiPath = ROI_PATH_NPR+"/"+current_date+".jpg"
         CustomOCRtext = customocr(roiPath)
         CarNum = separate_letters(CustomOCRtext)
 
@@ -103,13 +174,25 @@ def upload_image_SPOTS():
         if upload_file.filename == '':
             return 'No selected file'
 
-        filename = upload_file.filename
-        path_save = os.path.join(UPLOAD_PATH_SPOTS, filename)
-        upload_file.save(path_save)
         current_date = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        filename = current_date+".jpg"
+
+
+        # Read the file content
+        file_content = upload_file.read()
+
+        # Save the file in the Flask app directory
+        flask_path = os.path.join(UPLOAD_PATH_SPOTS, filename)
+        with open(flask_path, 'wb') as f:
+            f.write(file_content)
+
+        # Save the file in the XAMPP htdocs directory
+        xampp_path = os.path.join(XAMPP_UPLOAD_PATH_SPOTS, filename)
+        with open(xampp_path, 'wb') as f:
+            f.write(file_content)
         
         spots = parking(
-            path_save,
+            flask_path,
             current_date,
             640,
             640,
