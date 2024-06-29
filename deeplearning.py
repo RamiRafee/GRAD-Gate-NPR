@@ -88,6 +88,8 @@ def non_maximum_supression(input_image,detections):
     # clean
     boxes_np = np.array(boxes).tolist()
     confidences_np = np.array(confidences).tolist()
+    if boxes_np == []:
+        return None,None,0
     # NMS
     index = cv2.dnn.NMSBoxes(boxes_np,confidences_np,0.25,0.45).flatten()
     
@@ -114,8 +116,11 @@ def drawings(image,boxes_np,confidences_np,index,filename):
 def yolo_predictions(img,net,filename):
     ## step-1: detections
     input_image, detections = get_detections(img,net)
+    
     ## step-2: NMS
     boxes_np, confidences_np, index = non_maximum_supression(input_image, detections)
+    if boxes_np == None:
+        return None
     ## step-3: Drawings
     result_img = drawings(img,boxes_np,confidences_np,index,filename)
     return  boxes_np[index[0]]
@@ -124,6 +129,8 @@ def OCR(path,filename):
     img = cv2.imread(path)
     
     bbox = yolo_predictions(img,net,filename)
+    if bbox == None:
+        return None
     x,y,w,h = bbox
     roi = img[y:y+h, x:x+w]
     # plt.imshow(cv2.cvtColor(roi, cv2.COLOR_BGR2RGB))

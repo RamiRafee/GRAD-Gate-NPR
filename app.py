@@ -4,7 +4,7 @@ import tensorflow.keras.backend as K
 from deeplearning import OCR
 from CustomOCR import customocr
 from parkingspotclassifier import parking
-from DBinterface import check_car_existence, insert_row_NPR, update_SPOTS
+from DBinterface import check_car_existence, check_premium_status, update_SPOTS, append_to_file
 from datetime import datetime, timedelta
 # webserver gateway interface
 app = Flask(__name__)
@@ -29,6 +29,8 @@ def index():
             path_save = os.path.join(UPLOAD_PATH_NPR, filename)
             upload_file.save(path_save)
             easyOCRtext = OCR(path_save, filename)
+            if easyOCRtext == None:
+                return render_template('index.html', NPR=True, upload_image=filename, easyOCRtext="NO ROI FOUND!",customOCRtext="NO ROI FOUND!")
             roiPath = './static/roi/NPR/{}'.format(filename)
             CustomOCRtext = customocr(roiPath)
             CustomOCRtext = separate_letters(CustomOCRtext)
@@ -49,7 +51,7 @@ def index():
                 0.5,
                 0.5
             )
-            update_SPOTS('standard_garage_info',spots)
+
             
             return render_template('index.html', SPOTS=True, upload_image=filename, current_date=current_date, spots= spots)
     return render_template('index.html', upload=False)
@@ -73,6 +75,8 @@ def upload_image_NPR():
         CarNum = separate_letters(CustomOCRtext)
 
         if(check_car_existence(CarNum)):
+            preimum_status = check_premium_status(CarNum)
+
             # Get the current date and time
             current_datetime = datetime.now()
 
@@ -83,10 +87,11 @@ def upload_image_NPR():
             arrival_str = current_datetime.strftime('%Y-%m-%d')
             departure_str = departure.strftime('%Y-%m-%d')
             position = 'A1'
-            insert_row_NPR('standard_garage_info',CarNum)
-            return "True"
+            append_to_file("./static/entered_car_num.txt",CarNum)
+            return {'message':"True",'Premium':preimum_status}
+
         else:
-            return "False"
+            return {'message':"False"}
         
 @app.route('/upload_image_SPOTS', methods=['POST'])
 def upload_image_SPOTS():
@@ -112,8 +117,9 @@ def upload_image_SPOTS():
             0.5,
             0.5
         )
-           
-            
+        #spots = {1: {'Status': 'E'}, 2: {'Status': 'F', 'Color': '[[56, 52, 56], [148, 141, 147]]'}, 3: {'Status': 'E'}, 4: {'Status': 'F', 'Color': '[[56, 52, 56], [148, 141, 147]]'}, 5: {'Status': 'E'}, 6: {'Status': 'E'}, 7: {'Status': 'E'}, 8: {'Status': 'E'}, 9: {'Status': 'E'}, 10: {'Status': 'E'}, 11: {'Status': 'E'}, 12: {'Status': 'E'}, 13: {'Status': 'F', 'Color': '[[186, 177, 207], [73, 56, 81]]'}, 14: {'Status': 'E'}, 15: {'Status': 'E'}, 16: {'Status': 'E'}, 17: {'Status': 'E'}, 18: {'Status': 'E'}, 19: {'Status': 'E'}, 20: {'Status': 'E'}, 21: {'Status': 'E'}, 22: {'Status': 'F', 'Color': '[[202, 200, 210], [74, 67, 75]]'}, 23: {'Status': 'E'}, 24: {'Status': 'E'}, 25: {'Status': 'E'}, 26: {'Status': 'E'}, 27: {'Status': 'E'}, 28: {'Status': 'E'}, 29: {'Status': 'E'}, 30: {'Status': 'E'}, 31: {'Status': 'E'}, 32: {'Status': 'F', 'Color': '[[205, 206, 212], [59, 56, 60]]'}, 33: {'Status': 'E'}, 34: {'Status': 'E'}, 35: {'Status': 'F', 'Color': '[[135, 108, 106], [80, 40, 40]]'}, 36: {'Status': 'E'}, 37: {'Status': 'F', 'Color': '[[88, 80, 87], [214, 209, 220]]'}, 38: {'Status': 'E'}, 39: {'Status': 'F', 'Color': '[[37, 30, 36], [90, 79, 84]]'}, 40: {'Status': 'E'}}
+        update_status = update_SPOTS('standard_garage_info',spots,"./static/entered_car_num.txt")   
+        return {"message":update_status}
 
         
 
