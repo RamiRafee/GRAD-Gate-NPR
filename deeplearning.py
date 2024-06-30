@@ -22,12 +22,12 @@ if os.name == 'nt':  # Windows
 else:  # Unix-based (Linux/MacOS)
     XAMPP_HTDOCS_PATH = '/opt/lampp/htdocs'
 
-XAMPP_UPLOAD_PATH_NPR = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'upload', 'NPR')
-XAMPP_UPLOAD_PATH_SPOTS = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'upload', 'SPOTS')
-XAMPP_ROI_PATH_NPR = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'roi', 'NPR')
-XAMPP_ROI_PATH_SPOTS = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'roi', 'SPOTS')
-XAMPP_PREDICT_PATH_NPR = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'predict', 'NPR')
-XAMPP_PREDICT_PATH_SPOTS = os.path.join(XAMPP_HTDOCS_PATH, 'AI', 'predict', 'SPOTS')
+XAMPP_UPLOAD_PATH_NPR = os.path.join(XAMPP_HTDOCS_PATH,'my-api', 'AI', 'upload', 'NPR')
+XAMPP_UPLOAD_PATH_SPOTS = os.path.join(XAMPP_HTDOCS_PATH,'my-api', 'AI', 'upload', 'SPOTS')
+XAMPP_ROI_PATH_NPR = os.path.join(XAMPP_HTDOCS_PATH,'my-api', 'AI', 'roi', 'NPR')
+XAMPP_ROI_PATH_SPOTS = os.path.join(XAMPP_HTDOCS_PATH,'my-api', 'AI', 'roi', 'SPOTS')
+XAMPP_PREDICT_PATH_NPR = os.path.join(XAMPP_HTDOCS_PATH,'my-api', 'AI', 'predict', 'NPR')
+XAMPP_PREDICT_PATH_SPOTS = os.path.join(XAMPP_HTDOCS_PATH,'my-api', 'AI', 'predict', 'SPOTS')
 
 # Ensure all directories exist
 directories = [
