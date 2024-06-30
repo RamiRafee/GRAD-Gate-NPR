@@ -84,6 +84,10 @@ def parking(image_path,current_date, input_width, input_height, offset, confiden
     folder_path = os.path.dirname(output_full_image_path)
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
+      # Create the "currentdate" folder if it doesn't exist
+    folder_path = os.path.dirname(output_full_image_path_xampp)
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
     x_empty, y_empty, w_empty, h_empty = draw_bounding_boxes(image, output_full_image_path,output_full_image_path_xampp, empty, empty_boxes, centering_gap, (255, 0, 0))
     x_occupied, y_occupied, w_occupied, h_occupied = draw_bounding_boxes(image, output_full_image_path,output_full_image_path_xampp, occupied, occupied_boxes, centering_gap, (0, 255, 0))
 
