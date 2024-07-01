@@ -11,7 +11,7 @@ def customocr(image_path):
     loaded_model = tf.keras.models.load_model('./static/models/OCR/OCR-CustomModel.h5')
     # Read and preprocess the image
     img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-    if img:
+    if img is not None:
         img = cv2.resize(img, (128, 32))
     else :
         return None
