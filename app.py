@@ -6,6 +6,7 @@ from CustomOCR import customocr
 from parkingspotclassifier import parking
 from DBinterface import check_car_existence, check_premium_status, update_SPOTS, append_to_file
 from datetime import datetime, timedelta
+
 # webserver gateway interface
 app = Flask(__name__)
 
@@ -55,7 +56,10 @@ def index():
         if 'image_name_NPR' in request.files:
             current_date = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
             upload_file = request.files['image_name_NPR']
-            filename = current_date+".jpg"
+            original_filename = upload_file.filename
+            base_filename = current_date
+            extension = os.path.splitext(original_filename)[1]
+            filename = base_filename + extension
 
 
             # Read the file content
@@ -78,7 +82,20 @@ def index():
             roiPath = ROI_PATH_NPR+"/"+current_date+".jpg"
             CustomOCRtext = customocr(roiPath)
             CustomOCRtext = separate_letters(CustomOCRtext)
-            return render_template('index.html', NPR=True, upload_image=filename, easyOCRtext=easyOCRtext, customOCRtext=CustomOCRtext)
+
+            # Create a new filename with CarNum appended
+            new_filename = f"{base_filename}_{CustomOCRtext}{extension}"
+            flask_path = os.path.join(PREDICT_PATH_NPR, filename)
+            new_flask_path = os.path.join(PREDICT_PATH_NPR, new_filename)
+            xampp_path = os.path.join(XAMPP_PREDICT_PATH_NPR, filename)
+            new_xampp_path = os.path.join(XAMPP_PREDICT_PATH_NPR, new_filename)
+            
+            # Rename the file in the Flask app directory
+            os.rename(flask_path, new_flask_path)
+            os.rename(xampp_path, new_xampp_path)
+            
+
+            return render_template('index.html', NPR=True, upload_image=filename ,predict_image = new_filename, easyOCRtext=easyOCRtext, customOCRtext=CustomOCRtext)
         elif 'image_name_SPOTS' in request.files:
             upload_file = request.files['image_name_SPOTS']
 
@@ -141,8 +158,12 @@ def upload_image_NPR():
         
         
         number_plate = OCR(flask_path, filename)
+        if number_plate == None:
+            return {'message':"False"}
         roiPath = ROI_PATH_NPR+"/"+current_date+".jpg"
         CustomOCRtext = customocr(roiPath)
+        if CustomOCRtext == None:
+            return {'message':"False"}
         CarNum = separate_letters(CustomOCRtext)
 
         if(check_car_existence(CarNum)):
