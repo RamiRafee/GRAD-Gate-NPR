@@ -100,7 +100,7 @@ def update_SPOTS(table, slots, file_name):
     # with open(file_name, 'r') as file:
     #     carNum = file.readline().strip()
     try:
-        with open(file_name, 'r', encoding='utf-8') as file:
+        with open(file_name, 'r') as file:
             carNum = file.readline().strip()
     except UnicodeDecodeError:
         with open(file_name, 'r', encoding='ISO-8859-1') as file:
@@ -109,25 +109,35 @@ def update_SPOTS(table, slots, file_name):
     current_states = {}
     spot_to_update = None
     spot_updated = False
+    
+    even_index = 1
+    odd_index = 1
+
     for spot_number in range(1, 13):
-        position = f"A{spot_number}" if spot_number <= 6 else f"B{spot_number - 6}"
-        
+        if spot_number % 2 == 0:
+            position = f"A{even_index}"
+            even_index += 1
+        else:
+            position = f"B{odd_index}"
+            odd_index += 1
+            
+        status = slots.get(spot_number, {'Status': 'E'})['Status']
+        color = slots.get(spot_number, {}).get('Color', None)
+        print(f"Spot Number: {spot_number}, Position: {position}, Status: {status}, Color: {color}")
+    
         mycursor.execute("SELECT state FROM {} WHERE position = %s".format(table), (position,))
         current_states[position] = mycursor.fetchone()[0]
 
         # Determine if this spot has changed from "E" to "F"
         new_status = slots.get(spot_number, {'Status': 'E'})['Status']
-        if current_states[position] == 'E' and new_status == 'F' and spot_to_update == None:
+        if (current_states[position] == 'E' or current_states[position] == 'B') and new_status == 'F' and spot_to_update == None:
             spot_to_update = position
+      
             
 
     # Update the parking spots based on the returned slots
-    for spot_number in range(1, 13):
-        position = f"A{spot_number}" if spot_number <= 6 else f"B{spot_number - 6}"
-        
-        status = slots.get(spot_number, {'Status': 'E'})['Status']
-        color = slots.get(spot_number, {}).get('Color', None)
 
+ 
         if position == spot_to_update:
             # Update the spot that changed from "E" to "F"
             mycursor.execute(
@@ -135,18 +145,19 @@ def update_SPOTS(table, slots, file_name):
                 ('F', color, carNum, position)
             )
             spot_updated = True
-        elif current_states[position] != 'B' or status != 'E':
+           
+        elif current_states[position] == 'F' and status == 'E':
             # Update the parking spot in the database only if the current state is not 'B'
-            if status == 'E':
-                mycursor.execute(
-                    "UPDATE {} SET state = %s, carColor = %s, CarNum = NULL WHERE position = %s".format(table),
-                    (status, color, position)
-                )
-            elif status == 'F':
-                mycursor.execute(
-                    "UPDATE {} SET state = %s, carColor = %s WHERE position = %s".format(table),
-                    (status, color, position)
-                )
+            # if status == 'F':
+            mycursor.execute(
+                "UPDATE {} SET state = %s, carColor = %s, CarNum = NULL WHERE position = %s".format(table),
+                (status, color, position)
+            )
+            # elif status == 'F':
+            #     mycursor.execute(
+            #         "UPDATE {} SET state = %s, carColor = %s WHERE position = %s".format(table),
+            #         (status, color, position)
+            #     )
 
     # Commit the transaction
     mydb.commit()
