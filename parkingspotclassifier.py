@@ -54,6 +54,7 @@ for directory in directories:
 
 def parking(image_path,current_date, input_width, input_height, offset, confidence, class_score):
     img = cv2.imread(image_path)
+    img = cv2.resize(img, (640, 640), interpolation = cv2.INTER_LINEAR)
     net = cv2.dnn.readNetFromONNX(model_weights_path)
     net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
     net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
