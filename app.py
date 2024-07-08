@@ -145,7 +145,8 @@ def upload_image_NPR():
 
         # Read the file content
         file_content = upload_file.read()
-
+        if not file_content:
+            return {'message': 'Empty file uploaded'}
         # Save the file in the Flask app directory
         flask_path = os.path.join(UPLOAD_PATH_NPR, filename)
         with open(flask_path, 'wb') as f:
@@ -203,6 +204,9 @@ def upload_image_SPOTS():
         # Read the file content
         file_content = upload_file.read()
 
+        if not file_content:
+            return {'message': 'Empty file uploaded'}
+
         # Save the file in the Flask app directory
         flask_path = os.path.join(UPLOAD_PATH_SPOTS, filename)
         with open(flask_path, 'wb') as f:
@@ -213,15 +217,18 @@ def upload_image_SPOTS():
         with open(xampp_path, 'wb') as f:
             f.write(file_content)
         
-        spots = parking(
-            flask_path,
-            current_date,
-            640,
-            640,
-            40,
-            0.35,
-            0.25
-        )
+        try:
+            spots = parking(
+                flask_path,
+                current_date,
+                640,
+                640,
+                40,
+                0.35,
+                0.25
+            )
+        except Exception as e:
+            return {'message': 'Error processing image'}
         #spots = {1: {'Status': 'E'}, 2: {'Status': 'F', 'Color': '[[56, 52, 56], [148, 141, 147]]'}, 3: {'Status': 'E'}, 4: {'Status': 'F', 'Color': '[[56, 52, 56], [148, 141, 147]]'}, 5: {'Status': 'E'}, 6: {'Status': 'E'}, 7: {'Status': 'E'}, 8: {'Status': 'E'}, 9: {'Status': 'E'}, 10: {'Status': 'E'}, 11: {'Status': 'E'}, 12: {'Status': 'E'}, 13: {'Status': 'F', 'Color': '[[186, 177, 207], [73, 56, 81]]'}, 14: {'Status': 'E'}, 15: {'Status': 'E'}, 16: {'Status': 'E'}, 17: {'Status': 'E'}, 18: {'Status': 'E'}, 19: {'Status': 'E'}, 20: {'Status': 'E'}, 21: {'Status': 'E'}, 22: {'Status': 'F', 'Color': '[[202, 200, 210], [74, 67, 75]]'}, 23: {'Status': 'E'}, 24: {'Status': 'E'}, 25: {'Status': 'E'}, 26: {'Status': 'E'}, 27: {'Status': 'E'}, 28: {'Status': 'E'}, 29: {'Status': 'E'}, 30: {'Status': 'E'}, 31: {'Status': 'E'}, 32: {'Status': 'F', 'Color': '[[205, 206, 212], [59, 56, 60]]'}, 33: {'Status': 'E'}, 34: {'Status': 'E'}, 35: {'Status': 'F', 'Color': '[[135, 108, 106], [80, 40, 40]]'}, 36: {'Status': 'E'}, 37: {'Status': 'F', 'Color': '[[88, 80, 87], [214, 209, 220]]'}, 38: {'Status': 'E'}, 39: {'Status': 'F', 'Color': '[[37, 30, 36], [90, 79, 84]]'}, 40: {'Status': 'E'}}
         update_status = update_SPOTS('standard_garage_info',spots,"./static/entered_car_num.txt")   
         return {"message":update_status}
