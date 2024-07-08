@@ -166,7 +166,7 @@ def upload_image_NPR():
         if CustomOCRtext == None:
             return {'message':"False"}
         CarNum = separate_letters(CustomOCRtext)
-
+        append_to_file("./static/entered_car_num.txt",CarNum)
         if(check_car_existence(CarNum)):
             preimum_status = check_premium_status(CarNum)
 
@@ -180,7 +180,7 @@ def upload_image_NPR():
             arrival_str = current_datetime.strftime('%Y-%m-%d')
             departure_str = departure.strftime('%Y-%m-%d')
             position = 'A1'
-            append_to_file("./static/entered_car_num.txt",CarNum)
+            
             return {'message':"True",'Premium':preimum_status}
 
         else:
