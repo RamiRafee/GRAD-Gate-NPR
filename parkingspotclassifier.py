@@ -16,7 +16,7 @@ from PIL import Image
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.image as img
-from scipy.cluster.vq import whiten, kmeans
+from scipy.cluster.vq import whiten, kmeans, vq
 model_weights_path = './static/models/spots/best.onnx'
 
 BASE_PATH = os.getcwd()
@@ -131,8 +131,10 @@ def parking(image_path,current_date, input_width, input_height, offset, confiden
 
         output_image_path = os.path.join(ROI_PATH_SPOTS, current_date, 'output',f"_({i}).jpg")
         output_image_path_xampp = os.path.join(XAMPP_ROI_PATH_SPOTS, current_date, 'output',f"_({i}).jpg")
-        new_width = w_occupied[i] * 10
-        new_height = h_occupied[i] * 10
+        # new_width = w_occupied[i] * 10
+        # new_height = h_occupied[i] * 10
+        new_width = w_occupied[i]
+        new_height = h_occupied[i]
 
         resize_image(input_image_path, output_image_path,output_image_path_xampp, new_width, new_height)
 
@@ -292,6 +294,8 @@ def resize_image(input_image_path, output_image_path,output_image_path_xampp, ne
     # # plt.show()
 def car_color(car_path):
     car_image = img.imread(car_path)
+    height, width, _ = car_image.shape
+    car_image = car_image[:height-20, :]
 
     # Flatten the image array and separate the color channels
     pixels = car_image.reshape(-1, 3)
@@ -306,15 +310,22 @@ def car_color(car_path):
     r_std, g_std, b_std = colors_df[['red', 'green', 'blue']].std()
 
     # Perform k-means clustering
-    n_cluster = 2
+    n_cluster = 3
     cluster_centers, _ = kmeans(colors_df[['scaled_red', 'scaled_blue', 'scaled_green']], n_cluster)
+    cluster_labels, _ = vq(colors_df[['scaled_red', 'scaled_blue', 'scaled_green']], cluster_centers)
+    counts = np.bincount(cluster_labels)
+
+    # Identify the biggest cluster
+    sorted_indices = np.argsort(counts)[::-1]
+    second_largest_cluster_index = sorted_indices[1]
+    second_largest_cluster_size = counts[second_largest_cluster_index]
 
     # Convert scaled cluster centers back to original color values
     colors = (cluster_centers * [r_std, g_std, b_std] / 255).tolist()
     colors = np.clip(colors, 0, 1) * 255
     colors = np.array(colors).astype(int).tolist()
 
-    return colors
+    return colors[second_largest_cluster_index]
 
 
 if __name__ == '__main__':

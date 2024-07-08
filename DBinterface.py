@@ -1,5 +1,5 @@
 import mysql.connector
-
+import Levenshtein
 mydb = mysql.connector.connect(
     host="localhost",
     user="root",
@@ -26,22 +26,30 @@ mycursor = mydb.cursor()
 
 def check_car_existence(plat_num):
     try:
-        # Use LIKE with % as wildcards to match similar patterns
-        sql = "SELECT carNum FROM cars WHERE carNum LIKE %s"
-        like_pattern = f"%{plat_num}%"  # Add wildcards to the plate number
-        mycursor.execute(sql, (like_pattern,))
-        result = mycursor.fetchall()  # Fetch all matching results
+
+        # Select all car numbers from the database
+        sql = "SELECT carNum FROM cars"
+        mycursor.execute(sql)
+        result = mycursor.fetchall()  # Fetch all car numbers
         
-        if result:  # Check if there are any matching results
+        similar_cars = []
+        for row in result:
+            car_num = row[0]
+            distance = Levenshtein.distance(plat_num, car_num)
+            if distance <= 3:
+                similar_cars.append(car_num)
+        
+        if similar_cars:
             print("Found similar car plate numbers:")
-            for row in result:
-                print(row[0])  # Print each matching plate number
+            for car_num in similar_cars:
+                print(car_num)  # Print each matching plate number
             return True
         else:
             print("No similar car plate numbers found.")
             return False
     except mysql.connector.Error as error:
         print("Error:", error)
+        return False
 def check_premium_status(plat_num):
     try:
         # Use LIKE with % as wildcards to match similar patterns

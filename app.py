@@ -162,6 +162,7 @@ def upload_image_NPR():
             return {'message':"False"}
         roiPath = ROI_PATH_NPR+"/"+current_date+".jpg"
         CustomOCRtext = customocr(roiPath)
+        #CustomOCRtext = "ر ج ل 2 2 2"
         if CustomOCRtext == None:
             return {'message':"False"}
         CarNum = separate_letters(CustomOCRtext)
